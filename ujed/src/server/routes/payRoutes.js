@@ -3,6 +3,7 @@ const router = express.Router();
 const https = require("https"); // Para hacer solicitudes HTTPS
 const dbPool = require("../db"); // Para interactuar con la base de datos
 
+
 const PRIVATE_API_KEY = process.env.OPENPAY_PRIVADA; // Reemplaza con tu clave API privada
 const MERCHANT_ID = process.env.OPENPAY_ID; // Reemplaza con tu Merchant ID
 
@@ -164,7 +165,6 @@ router.post("/create-checkout", async (req, res) => {
       programa,
       centroCosto,
     ];
-
     console.log("Insertando en la tabla de adeudos:", adeudoValues);
 
     dbPool.query(insertAdeudoQuery, adeudoValues, (err, result) => {
@@ -295,7 +295,6 @@ router.get("/verify-transaction", (req, res) => {
 
         // Extraer el número después del guion en la descripción
         const descriptionNumber = description.split("-")[1]?.trim();
-
         // Verificar el método de pago para redirigir
         if (method === "store" || method === "bank_account") {
           // Si el método de pago es 'store' o 'bank_account', redirigir a la página de inicio
@@ -334,7 +333,6 @@ router.get("/verify-transaction", (req, res) => {
               WHERE Nombre = ? AND id_curso = ?
             `;
             const inscriptionValues = [name, descriptionNumber];
-
             dbPool.query(
               updateInscriptionQuery,
               inscriptionValues,
