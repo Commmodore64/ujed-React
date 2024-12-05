@@ -20,7 +20,7 @@ const Profile = () => {
     const obtenerDatosAlumno = async () => {
       try {
         const response = await fetch(
-          `http://ujed.solmoviles.com.mx/api/alumnos/${user.sub}`,
+          `https://ujed.solmoviles.com.mx/api/alumnos/${user.sub}`,
           {
             method: "GET",
             headers: {
@@ -107,7 +107,7 @@ const Profile = () => {
 
     try {
       const response = await fetch(
-        "http://ujed.solmoviles.com.mx/api/userdata",
+        "https://ujed.solmoviles.com.mx/api/userdata",
         {
           method: "POST",
           headers: {

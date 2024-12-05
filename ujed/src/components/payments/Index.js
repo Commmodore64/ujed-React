@@ -3,13 +3,9 @@ import Sidebar from "../sidebar/Index";
 import { useNavigate } from "react-router-dom";
 import MaskedInput from "react-text-mask";
 import { toast } from "sonner";
-import Swal from "sweetalert2";
-import { IoMdCheckmark, IoMdClose } from "react-icons/io";
-import { OpenPay } from "openpay-js";
 
 const Index = () => {
   const Swal = require("sweetalert2");
-  const [deviceSessionId, setDeviceSessionId] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [cursos, setCursos] = useState([]);
   const [matricula, setMatricula] = useState(
@@ -48,7 +44,7 @@ const Index = () => {
     const fetchCursos = async () => {
       try {
         const response = await fetch(
-          "http://ujed.solmoviles.com.mx/api/cursos",
+          "https://ujed.solmoviles.com.mx/api/cursos",
           {
             method: "GET",
             headers: {
@@ -152,7 +148,7 @@ const Index = () => {
       try {
         // Hacer la petición POST a la API
         const response = await fetch(
-          "http://ujed.solmoviles.com.mx/api/generate-pdf-efectivo",
+          "https://ujed.solmoviles.com.mx/api/generate-pdf-efectivo",
           {
             method: "POST",
             headers: {
@@ -210,7 +206,7 @@ const Index = () => {
 
     try {
       const response = await fetch(
-        "http://ujed.solmoviles.com.mx/api/create-checkout",
+        "https://ujed.solmoviles.com.mx/api/create-checkout",
         {
           method: "POST",
           headers: {
@@ -238,7 +234,7 @@ const Index = () => {
               email: "email@email.com",
             },
             redirect_url:
-              "http://ujed.solmoviles.com.mx/api/verify-transaction",
+              "https://ujed.solmoviles.com.mx/api/verify-transaction",
             comentarios: localStorage.getItem("comentarios") || "",
           }),
         }
@@ -258,7 +254,9 @@ const Index = () => {
       }
     } catch (error) {
       console.error("Error al crear la sesión de pago:", error);
-      toast.error("Ocurrió un error al procesar el pago.");
+      toast.error(
+        "Ocurrió un error al procesar el pago, revisa tu información."
+      );
       setIsProcessing(false); // Reactiva el botón si hay un error
     }
   };
@@ -314,7 +312,7 @@ const Index = () => {
       }
 
       const response = await fetch(
-        "http://ujed.solmoviles.com.mx/api/validar-codigo",
+        "https://ujed.solmoviles.com.mx/api/validar-codigo",
         {
           method: "POST",
           headers: {
@@ -372,6 +370,7 @@ const Index = () => {
               </label>
               <input
                 type="text"
+                id="nombreCompleto"
                 name="nombreCompleto"
                 value={nombreCompleto}
                 onChange={(e) => setNombreCompleto(e.target.value)}
@@ -388,6 +387,7 @@ const Index = () => {
                 </label>
                 <input
                   type="text"
+                  id="matricula"
                   name="matricula"
                   value={matricula}
                   onChange={(e) => setMatricula(e.target.value)}
@@ -419,6 +419,7 @@ const Index = () => {
                   </label>
                   <input
                     type="text"
+                    id="rfc"
                     name="rfc"
                     value={rfc}
                     onChange={(e) => setRFC(e.target.value)}
@@ -434,6 +435,7 @@ const Index = () => {
                   </label>
                   <input
                     type="text"
+                    id="curp"
                     name="curp"
                     value={curp}
                     onChange={(e) => setCURP(e.target.value)}
@@ -468,7 +470,9 @@ const Index = () => {
               <MaskedInput
                 mask={phoneMask}
                 guide={false}
+                required={true}
                 type="text"
+                id="telefono"
                 name="telefono"
                 value={telefono}
                 onChange={(e) => setTelefono(e.target.value)}
@@ -484,6 +488,7 @@ const Index = () => {
               </label>
               <input
                 type="date"
+                id="fechaNacimiento"
                 name="fechaNacimiento"
                 value={fechaNacimiento}
                 onChange={(e) => setFechaNacimiento(e.target.value)}
@@ -499,6 +504,7 @@ const Index = () => {
               </label>
               <select
                 name="cursoSeleccionado"
+                id="cursoSeleccionado"
                 value={cursoSeleccionado}
                 onChange={(e) => {
                   const selectedValue = e.target.value;
@@ -550,6 +556,7 @@ const Index = () => {
                   </label>
                   <input
                     type="text"
+                    id="codigoAcceso"
                     name="codigoAcceso"
                     value={codigoAcceso}
                     onChange={(e) => setCodigoAcceso(e.target.value)}
@@ -571,6 +578,7 @@ const Index = () => {
               </label>
               <textarea
                 name="comentarios"
+                id="comentarios"
                 value={comentarios}
                 onChange={(e) => setComentarios(e.target.value)}
                 rows="4"

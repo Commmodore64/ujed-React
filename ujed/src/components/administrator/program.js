@@ -20,7 +20,7 @@ const Program = () => {
     const fetchProgramas = async () => {
       try {
         const response = await fetch(
-          "http://ujed.solmoviles.com.mx/api/programa",
+          "https://ujed.solmoviles.com.mx/api/programa",
           {
             method: "GET",
             headers: {
@@ -49,7 +49,7 @@ const Program = () => {
   const handleAgregarPrograma = async () => {
     try {
       const response = await fetch(
-        "http://ujed.solmoviles.com.mx/api/programa",
+        "https://ujed.solmoviles.com.mx/api/programa",
         {
           method: "POST",
           headers: {
@@ -80,7 +80,7 @@ const Program = () => {
   const handleEditarPrograma = async (id) => {
     try {
       const response = await fetch(
-        `http://ujed.solmoviles.com.mx/api/programa/${id}`,
+        `https://ujed.solmoviles.com.mx/api/programa/${id}`,
         {
           method: "GET",
           headers: {
@@ -110,7 +110,7 @@ const Program = () => {
   const handleActualizarPrograma = async () => {
     try {
       const response = await fetch(
-        `http://ujed.solmoviles.com.mx/api/programa/${programaId}`,
+        `https://ujed.solmoviles.com.mx/api/programa/${programaId}`,
         {
           method: "PUT",
           headers: {
@@ -149,7 +149,7 @@ const Program = () => {
   const handleEliminarPrograma = async (id) => {
     try {
       const response = await fetch(
-        `http://ujed.solmoviles.com.mx/api/programa/${id}`,
+        `https://ujed.solmoviles.com.mx/api/programa/${id}`,
         {
           method: "DELETE",
         }

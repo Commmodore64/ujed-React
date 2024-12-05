@@ -56,7 +56,6 @@ function App() {
                 <Route path="/history/details" element={<Details />} />
                 <Route path="/catalog" element={<Catalog />} />
                 <Route path="/paypdf" element={<PayPDF />} />
-                {/* <Route path="/settings" element={<Settings />} /> */}
               </Routes>
               <Toaster position="top-right" />
             </div>

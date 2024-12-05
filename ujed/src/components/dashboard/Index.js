@@ -5,6 +5,7 @@ import Sidebar from "../sidebar/Index";
 import { IoIosArrowForward } from "react-icons/io";
 import { Link } from "react-router-dom";
 import logo from "../../img/logo-banner-red.png";
+import Markdown from "react-markdown";
 
 const Index = () => {
   const { user, isAuthenticated } = useAuth0();
@@ -14,12 +15,42 @@ const Index = () => {
   const [, setFechaNacimiento] = useState("");
   const [cursos, setCursos] = useState([]);
   const [ultimaFechaActualizacion, setUltimaFechaActualizacion] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState({ title: "", content: "" });
+
+  const openModal = async (title, contentUrl) => {
+    let content = "";
+    if (contentUrl) {
+      try {
+        const response = await fetch(contentUrl);
+        if (response.ok) {
+          content = await response.text();
+        } else {
+          console.error(
+            "Error al cargar el archivo:",
+            response.status,
+            response.statusText
+          );
+        }
+      } catch (error) {
+        console.error("Error en la solicitud:", error);
+      }
+    }
+    setModalContent({ title, content });
+    setIsModalOpen(true);
+  };
+
+  const renderMarkdown = (markdownText) => {
+    return <Markdown>{markdownText}</Markdown>;
+  };
+
+  const closeModal = () => setIsModalOpen(false);
 
   useEffect(() => {
     const obtenerDatosAlumno = async () => {
       try {
         const response = await fetch(
-          `http://ujed.solmoviles.com.mx/api/alumnos/${user.sub}`,
+          `https://ujed.solmoviles.com.mx/api/alumnos/${user.sub}`,
           {
             method: "GET",
             headers: {
@@ -47,16 +78,21 @@ const Index = () => {
       }
     };
 
-    if (isAuthenticated) {
+    // Validar si el usuario está autenticado y si el `user.sub` existe
+    if (isAuthenticated && user?.sub) {
       obtenerDatosAlumno();
+    } else if (!isAuthenticated) {
+      console.log("El usuario no está autenticado");
+    } else if (!user?.sub) {
+      console.log("El usuario autenticado no tiene un 'sub'");
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user?.sub]);
 
   useEffect(() => {
     const fetchCursos = async () => {
       try {
         const response = await fetch(
-          "http://ujed.solmoviles.com.mx/api/cursos",
+          "https://ujed.solmoviles.com.mx/api/cursos",
           {
             method: "GET",
             headers: {
@@ -168,8 +204,45 @@ const Index = () => {
             <p className="text-sm text-gray-700 ">
               Tel. (618) 827 13 70.
               <br />
-              E-mail: feo@ujed.mx
+              <br />
+              E-mail: faeoopenpay@gmail.com
             </p>
+            <div>
+              <div className="flex flex-col lg:flex-row w-full mt-8 space-y-4 lg:space-y-0 lg:space-x-4">
+                <button
+                  onClick={() => openModal("Términos y Condiciones", "/TyC.md")}
+                  className="text-gray-950 hover:text-gray-700 py-2 px-4 rounded transition duration-300 ease-in-out"
+                >
+                  Términos y Condiciones
+                </button>
+                <button
+                  onClick={() => openModal("Aviso de Privacidad", "/AdP.md")}
+                  className="text-gray-950 hover:text-gray-700 py-2 px-4 rounded transition duration-300 ease-in-out"
+                >
+                  Aviso de Privacidad
+                </button>
+              </div>
+
+              {/* Modal */}
+              {isModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center z-50 bg-gray-900 bg-opacity-50">
+                  <div className="bg-white rounded-lg p-6 w-full max-w-2xl h-3/4 overflow-y-auto">
+                    <h2 className="text-xl font-semibold mb-4">
+                      {modalContent.title}
+                    </h2>
+                    <div className="text-justify">
+                      {renderMarkdown(modalContent.content)}
+                    </div>
+                    <button
+                      onClick={closeModal}
+                      className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                      Cerrar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

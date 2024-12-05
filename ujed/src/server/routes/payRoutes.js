@@ -1,22 +1,32 @@
 const express = require("express");
 const router = express.Router();
 const https = require("https"); // Para hacer solicitudes HTTPS
-const db = require("../db"); // Para interactuar con la base de datos
-const { redirect } = require("react-router-dom");
+const dbPool = require("../db"); // Para interactuar con la base de datos
 
-const PRIVATE_API_KEY = process.env.PRIVATE_API_KEY; // Reemplaza con tu clave API privada
-const MERCHANT_ID = process.env.MERCHANT_ID; // Reemplaza con tu Merchant ID
+
+const PRIVATE_API_KEY = process.env.OPENPAY_PRIVADA; // Reemplaza con tu clave API privada
+const MERCHANT_ID = process.env.OPENPAY_ID; // Reemplaza con tu Merchant ID
 
 // Función para obtener el id del curso basado en el nombre del curso
 const getCursoIdByName = (curso) => {
   return new Promise((resolve, reject) => {
+    console.log(`Iniciando búsqueda del curso: ${curso}`);
     const query = "SELECT id FROM cursos WHERE nombre = ?";
-    db.query(query, [curso], (error, results) => {
-      if (error) return reject(error);
+    dbPool.query(query, [curso], (error, results) => {
+      if (error) {
+        console.error(
+          `Error al ejecutar la consulta para el curso "${curso}":`,
+          error
+        );
+        return reject(error);
+      }
+      console.log(`Resultados de la consulta para "${curso}":`, results);
       if (results.length > 0) {
+        console.log(`Curso encontrado: ${results[0].id}`);
         resolve(results[0].id);
       } else {
-        resolve(null); // O podrías rechazar la promesa si prefieres
+        console.log(`No se encontró el curso: ${curso}`);
+        resolve(null);
       }
     });
   });
@@ -25,14 +35,21 @@ const getCursoIdByName = (curso) => {
 // Función para insertar un registro en la tabla inscripciones
 const insertInscripcion = (idCurso, nombre, fechaInscripcion, estadoPago) => {
   return new Promise((resolve, reject) => {
+    console.log(
+      `Insertando inscripción para el curso ${idCurso}, nombre: ${nombre}, fecha: ${fechaInscripcion}, estado: ${estadoPago}`
+    );
     const query =
       "INSERT INTO inscripciones (id_curso, nombre, fecha_inscripcion, estado_pago) VALUES (?, ?, ?, ?)";
     const fechaActual = new Date().toISOString().slice(0, 19).replace("T", " "); // Formato YYYY-MM-DD HH:MM:SS
-    db.query(
+    dbPool.query(
       query,
       [idCurso, nombre, fechaActual, estadoPago],
       (error, results) => {
-        if (error) return reject(error);
+        if (error) {
+          console.error("Error al insertar inscripción:", error);
+          return reject(error);
+        }
+        console.log("Inscripción insertada correctamente.");
         resolve(results);
       }
     );
@@ -41,6 +58,7 @@ const insertInscripcion = (idCurso, nombre, fechaInscripcion, estadoPago) => {
 
 // Endpoint para crear un checkout
 router.post("/create-checkout", async (req, res) => {
+  console.log("Llamada al endpoint /create-checkout");
   const {
     amount,
     currency,
@@ -53,6 +71,8 @@ router.post("/create-checkout", async (req, res) => {
     comentarios,
   } = req.body;
 
+  console.log("Datos recibidos en el body:", req.body);
+
   // Verificar que todos los campos requeridos están presentes
   if (
     !amount ||
@@ -64,6 +84,7 @@ router.post("/create-checkout", async (req, res) => {
     !curso ||
     !comentarios
   ) {
+    console.error("Faltan campos requeridos en la solicitud.");
     return res
       .status(400)
       .json({ error: "Todos los campos requeridos deben ser proporcionados" });
@@ -74,29 +95,29 @@ router.post("/create-checkout", async (req, res) => {
     const cursoId = await getCursoIdByName(curso);
 
     if (!cursoId) {
+      console.error("Curso no encontrado.");
       return res.status(404).json({ error: "Curso no encontrado" });
     }
 
-    // Log del id del curso para corroborar
-    console.log("ID del curso:", cursoId);
-
-    // Llamar a la API /api/cursos para obtener los datos del curso
+    console.log(`Obteniendo datos del curso con ID: ${cursoId}`);
     const cursoResponse = await fetch(
-      `http://ujed.solmoviles.com.mx/api/cursos/${cursoId}`
+      `https://ujed.solmoviles.com.mx/api/cursos/${cursoId}`
     );
     const cursoData = await cursoResponse.json();
 
     if (!cursoResponse.ok) {
+      console.error("Error al obtener datos del curso desde la API.");
       return res
         .status(500)
         .json({ error: "Error al obtener datos del curso" });
     }
 
     const { programa, centroCosto } = cursoData;
-    console.log("Programa y centro de costo:", programa, centroCosto);
+    console.log(`Datos del curso obtenidos:`, cursoData);
 
     // Crear el nombre completo del cliente
     const nombreCompleto = `${customer.name}`;
+    console.log(`Nombre completo del cliente: ${nombreCompleto}`);
 
     // Insertar en la tabla inscripciones
     await insertInscripcion(
@@ -107,12 +128,12 @@ router.post("/create-checkout", async (req, res) => {
     );
 
     const description = `${newDescription}-${cursoId}`;
+    console.log(`Descripción generada: ${description}`);
 
     const postData = JSON.stringify({
       amount,
       currency,
       description,
-
       order_id,
       send_email,
       customer: {
@@ -122,9 +143,12 @@ router.post("/create-checkout", async (req, res) => {
       },
       redirect_url,
     });
-    console.log("Datos generales openpay: ", postData);
+
+    console.log("Datos del POST a OpenPay:", postData);
+
     // Extraer el id_alumno del order_id
     const idAlumno = order_id.split("_")[3];
+    console.log(`ID del alumno extraído: ${idAlumno}`);
 
     // Insertar en la tabla adeudos
     const insertAdeudoQuery = `
@@ -141,19 +165,20 @@ router.post("/create-checkout", async (req, res) => {
       programa,
       centroCosto,
     ];
+    console.log("Insertando en la tabla de adeudos:", adeudoValues);
 
-    db.query(insertAdeudoQuery, adeudoValues, (err, result) => {
+    dbPool.query(insertAdeudoQuery, adeudoValues, (err, result) => {
       if (err) {
         console.error("Error al insertar en la tabla de adeudos:", err);
         return res
           .status(500)
           .json({ error: "Error al insertar en la tabla de adeudos" });
       }
-      console.log("Adeudo insertado correctamente");
+      console.log("Adeudo insertado correctamente.");
     });
 
     const options = {
-      hostname: "sandbox-api.openpay.mx", //Seteado en sandbox para pruebas
+      hostname: "sandbox-api.openpay.mx",
       port: 443,
       path: `/v1/${MERCHANT_ID}/checkouts`,
       method: "POST",
@@ -166,7 +191,12 @@ router.post("/create-checkout", async (req, res) => {
       },
     };
 
+    console.log("Opciones para la solicitud HTTPS:", options);
+
     const request = https.request(options, (response) => {
+      console.log(
+        `Respuesta del servidor OpenPay con código: ${response.statusCode}`
+      );
       let data = "";
 
       response.on("data", (chunk) => {
@@ -174,9 +204,11 @@ router.post("/create-checkout", async (req, res) => {
       });
 
       response.on("end", async () => {
+        console.log("Datos recibidos de OpenPay:", data);
         if (response.statusCode === 200) {
           try {
             const parsedData = JSON.parse(data);
+            console.log("Datos parseados correctamente:", parsedData);
             res.json(parsedData);
           } catch (parseError) {
             console.error("Error al parsear la respuesta JSON:", parseError);
@@ -187,6 +219,7 @@ router.post("/create-checkout", async (req, res) => {
         } else {
           try {
             const parsedData = JSON.parse(data);
+            console.log("Error en OpenPay:", parsedData);
             res.status(response.statusCode).json(parsedData);
           } catch (parseError) {
             console.error("Error al parsear la respuesta JSON:", parseError);
@@ -204,7 +237,6 @@ router.post("/create-checkout", async (req, res) => {
     });
 
     request.write(postData);
-    console.log("Datos generales openpay: ", postData);
     request.end();
   } catch (error) {
     console.error(
@@ -263,6 +295,11 @@ router.get("/verify-transaction", (req, res) => {
 
         // Extraer el número después del guion en la descripción
         const descriptionNumber = description.split("-")[1]?.trim();
+        // Verificar el método de pago para redirigir
+        if (method === "store" || method === "bank_account") {
+          // Si el método de pago es 'store' o 'bank_account', redirigir a la página de inicio
+          return res.redirect("https://ujed.solmoviles.com.mx/");
+        }
 
         // Insertar datos en la tabla de pagos si la transacción se completó
         if (status === "completed") {
@@ -281,7 +318,7 @@ router.get("/verify-transaction", (req, res) => {
           ];
           const courseId = values[6].split("-")[1]?.trim();
 
-          db.query(insertQuery, values, (err, result) => {
+          dbPool.query(insertQuery, values, (err, result) => {
             if (err) {
               console.error("Error al insertar en la base de datos:", err);
               return res
@@ -296,8 +333,7 @@ router.get("/verify-transaction", (req, res) => {
               WHERE Nombre = ? AND id_curso = ?
             `;
             const inscriptionValues = [name, descriptionNumber];
-
-            db.query(
+            dbPool.query(
               updateInscriptionQuery,
               inscriptionValues,
               (err, result) => {
@@ -314,7 +350,7 @@ router.get("/verify-transaction", (req, res) => {
                 SET cupo = cupo - 1
                 WHERE id = ?
               `;
-                db.query(
+                dbPool.query(
                   updateCupoQuery,
                   [descriptionNumber],
                   (err, result) => {
@@ -335,7 +371,7 @@ router.get("/verify-transaction", (req, res) => {
 
                     // Redirigir a la ruta con los parámetros en la query string
                     res.redirect(
-                      `http://localhost:3000/paypdf?name=${encodeURIComponent(
+                      `https://ujed.solmoviles.com.mx/paypdf?name=${encodeURIComponent(
                         name
                       )}&holderName=${encodeURIComponent(
                         holderName

@@ -16,7 +16,7 @@ const Catalog = () => {
     const fetchCatalogo = async () => {
       try {
         const response = await fetch(
-          "http://ujed.solmoviles.com.mx/api/catalogo",
+          "https://ujed.solmoviles.com.mx/api/catalogo",
           {
             method: "GET",
             headers: {

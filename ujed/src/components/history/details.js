@@ -10,7 +10,9 @@ const Index = () => {
   useEffect(() => {
     const fetchPaymentsData = async () => {
       try {
-        const response = await fetch("http://ujed.solmoviles.com.mx/api/pagos"); // Asegúrate de que la URL sea correcta
+        const response = await fetch(
+          "https://ujed.solmoviles.com.mx/api/pagos"
+        ); // Asegúrate de que la URL sea correcta
         if (response.ok) {
           const data = await response.json();
           setPaymentsData(data);

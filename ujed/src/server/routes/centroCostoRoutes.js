@@ -1,28 +1,40 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const connection = require('../db');
+const pool = require("../db"); // Usamos pool en lugar de connection
 
-router.get('/centroCosto/:id', (req, res) => {
-    const id = req.params.id;
-    const query = 'SELECT * FROM centroCosto WHERE id = ?';
-    connection.query(query, [id], (err, results) => {
-        if (err) {
-            console.error('Error al obtener los centros de costos:', err);
-            return res.status(500).json({ error: 'Error interno del servidor' });
-        }
-        res.status(200).json(results);
-    });
+// Obtener un centro de costo por ID
+router.get("/centroCosto/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = "SELECT * FROM centrocosto WHERE id = ?";
+
+  try {
+    // No es necesario usar .promise(), ya que mysql2 lo maneja automáticamente
+    const [results] = await pool.query(query, [id]);
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: "Centro de Costo no encontrado" });
+    }
+
+    res.status(200).json(results);
+  } catch (err) {
+    console.error("Error al obtener el centro de costo:", err);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
 });
 
-router.get('/centroCosto', (req, res) => {
-    const query = 'SELECT * FROM centroCosto';
-    connection.query(query, (err, results) => {
-        if (err) {
-            console.error('Error al obtener los Centros de Costos:', err);
-            return res.status(500).json({ error: 'Error interno del servidor' });
-        }
-        res.status(200).json(results);
-    });
+// Obtener todos los centros de costo
+router.get("/centroCosto", async (req, res) => {
+  const query = "SELECT * FROM centrocosto";
+
+  try {
+    // Tampoco es necesario usar .promise() aquí
+    const [results] = await pool.query(query);
+
+    res.status(200).json(results);
+  } catch (err) {
+    console.error("Error al obtener los centros de costo:", err);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
 });
 
 module.exports = router;

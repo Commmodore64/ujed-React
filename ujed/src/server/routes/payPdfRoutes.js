@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../db");
+const pool = require("../db"); // Importar el pool de conexiones
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const path = require("path");
@@ -34,8 +34,8 @@ router.post("/generate-pdf", (req, res) => {
   }
   console.log("Comentarios: ", comentarios);
 
-  // Buscar el curso por ID
-  db.query(
+  // Usar el pool para hacer la consulta
+  pool.query(
     "SELECT programa FROM cursos WHERE id = ?",
     [courseId],
     (err, results) => {
@@ -66,19 +66,21 @@ router.post("/generate-pdf", (req, res) => {
       doc.pipe(stream);
 
       // Agregar una imagen al PDF (logotipo o lo que necesites)
-      const imagePath = path.join(__dirname, '../../img/logo-faeo.png');
+      const imagePath = path.join(__dirname, "../../img/logo-faeo.png");
       doc.image(imagePath, 20, 10, { width: 50 }); // Ajusta la posición y el tamaño de la imagen
 
       // Agregar contenido al PDF
       doc.fontSize(20).text(programa, { align: "center" });
-      doc.fontSize(15).text("Papeleta de Pago por medio digital", { align: "center" });
+      doc
+        .fontSize(15)
+        .text("Papeleta de Pago por medio digital", { align: "center" });
       doc.moveDown(1.5); // Espacio reducido entre elementos
       doc.moveTo(20, doc.y).lineTo(580, doc.y).stroke(); // Línea ajustada al ancho de la papeleta
       doc.moveDown(0.5);
       doc.fontSize(10); // Texto reducido para evitar saltos de página
       doc.text(`Nombre del Alumno(a): ${name}`);
       doc.moveDown(0.5);
-      doc.moveTo(20, doc.y).lineTo(580, doc.y).stroke();  
+      doc.moveTo(20, doc.y).lineTo(580, doc.y).stroke();
       doc.moveDown(0.5);
 
       // Formatear fecha y hora

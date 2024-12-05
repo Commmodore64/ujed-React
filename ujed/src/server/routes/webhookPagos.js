@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const router = express.Router();
-const connection = require("../db");
+const pool = require("../db"); // Usamos el pool en lugar de connection
 
 // Middleware para parsear JSON
 router.use(bodyParser.json());
@@ -19,50 +19,44 @@ async function guardarDetalles(
   const updateQuery =
     "UPDATE adeudos SET referencia = ?, Nombre = ?, Descripcion = ?, monto = ?, Fecha_Adeudo = ? WHERE id_alumno = ? AND Descripcion = ?";
 
-  connection.query(
-    updateQuery,
-    [
-      reference,
-      nombre,
-      descripcion,
-      monto,
-      fechaAdeudo,
-      id_alumno,
-      descripcion,
-    ],
-    (err, results) => {
-      if (err) {
-        console.error("Error al actualizar los detalles del pago:", err);
-        return;
-      }
+  try {
+    const [results] = await pool
+      .promise()
+      .query(updateQuery, [
+        reference,
+        nombre,
+        descripcion,
+        monto,
+        fechaAdeudo,
+        id_alumno,
+        descripcion,
+      ]);
 
-      if (results.affectedRows > 0) {
-        console.log(
-          `Detalles del pago actualizados para matrícula: ${id_alumno}, Descripción: ${descripcion}`
-        );
-      } else {
-        // Si no se actualizó nada, insertamos un nuevo registro
-        const insertQuery =
-          "INSERT INTO adeudos (referencia, Nombre, Descripcion, monto, Fecha_Adeudo, id_alumno) VALUES (?, ?, ?, ?, ?, ?)";
-        connection.query(
-          insertQuery,
-          [reference, nombre, descripcion, monto, fechaAdeudo, id_alumno],
-          (insertErr) => {
-            if (insertErr) {
-              console.error(
-                "Error al guardar los detalles del pago:",
-                insertErr
-              );
-            } else {
-              console.log(
-                `Detalles del pago guardados: Referencia: ${reference}, Nombre: ${nombre}, Descripción: ${descripcion}, Monto: ${monto}, Fecha: ${fechaAdeudo}`
-              );
-            }
-          }
-        );
-      }
+    if (results.affectedRows > 0) {
+      console.log(
+        `Detalles del pago actualizados para matrícula: ${id_alumno}, Descripción: ${descripcion}`
+      );
+    } else {
+      // Si no se actualizó nada, insertamos un nuevo registro
+      const insertQuery =
+        "INSERT INTO adeudos (referencia, Nombre, Descripcion, monto, Fecha_Adeudo, id_alumno) VALUES (?, ?, ?, ?, ?, ?)";
+      await pool
+        .promise()
+        .query(insertQuery, [
+          reference,
+          nombre,
+          descripcion,
+          monto,
+          fechaAdeudo,
+          id_alumno,
+        ]);
+      console.log(
+        `Detalles del pago guardados: Referencia: ${reference}, Nombre: ${nombre}, Descripción: ${descripcion}, Monto: ${monto}, Fecha: ${fechaAdeudo}`
+      );
     }
-  );
+  } catch (err) {
+    console.error("Error al guardar los detalles del pago:", err);
+  }
 }
 
 // Función para extraer el nombre del `order_id`
@@ -115,31 +109,29 @@ router.post("/webhook/openpay", async (req, res) => {
         // Consulta para buscar en la tabla adeudos
         const query =
           "SELECT * FROM adeudos WHERE id_alumno = ? AND Descripcion = ?";
-        connection.query(
-          query,
-          [id_alumno, description],
-          async (err, results) => {
-            if (err) {
-              console.error("Error al buscar en la tabla adeudos:", err);
-              return res.status(500).send("Error interno al buscar en adeudos");
-            }
+        try {
+          const [results] = await pool
+            .promise()
+            .query(query, [id_alumno, description]);
 
-            if (results.length > 0) {
-              guardarDetalles(
-                reference,
-                nombre,
-                description,
-                amount,
-                fechaAdeudo,
-                id_alumno
-              );
-              res.status(200).send("Webhook procesado y datos guardados");
-            } else {
-              console.log("No se encontró coincidencia en la tabla adeudos");
-              res.status(400).send("No se encontró el adeudo correspondiente");
-            }
+          if (results.length > 0) {
+            await guardarDetalles(
+              reference,
+              nombre,
+              description,
+              amount,
+              fechaAdeudo,
+              id_alumno
+            );
+            res.status(200).send("Webhook procesado y datos guardados");
+          } else {
+            console.log("No se encontró coincidencia en la tabla adeudos");
+            res.status(400).send("No se encontró el adeudo correspondiente");
           }
-        );
+        } catch (err) {
+          console.error("Error al buscar en la tabla adeudos:", err);
+          return res.status(500).send("Error interno al buscar en adeudos");
+        }
       } else {
         console.log("Referencia o nombre no encontrados en los datos del pago");
         res.status(400).send("Datos incompletos");
@@ -164,19 +156,16 @@ router.post("/webhook/openpay", async (req, res) => {
       const updateQuery =
         "UPDATE adeudos SET Pagado = 1, Fecha_Pago = ? WHERE id_alumno = ? AND Descripcion = ?";
 
-      connection.query(
-        updateQuery,
-        [currentDate, id_alumno, description],
-        (updateErr) => {
-          if (updateErr) {
-            console.error("Error al actualizar el estado de pago:", updateErr);
-          } else {
-            console.log(
-              `Adeudo actualizado a pagado para matrícula: ${id_alumno}, Descripción: ${description}, Fecha de pago: ${currentDate}`
-            );
-          }
-        }
-      );
+      try {
+        await pool
+          .promise()
+          .query(updateQuery, [currentDate, id_alumno, description]);
+        console.log(
+          `Adeudo actualizado a pagado para matrícula: ${id_alumno}, Descripción: ${description}, Fecha de pago: ${currentDate}`
+        );
+      } catch (updateErr) {
+        console.error("Error al actualizar el estado de pago:", updateErr);
+      }
     }
 
     if (paymentData && paymentData.method === "card") {
@@ -187,16 +176,16 @@ router.post("/webhook/openpay", async (req, res) => {
       // Si es pago con tarjeta y el pago se completó, eliminamos el registro en adeudos
       const deleteQuery =
         "DELETE FROM adeudos WHERE id_alumno = ? AND Descripcion = ?";
-      connection.query(deleteQuery, [id_alumno, description], (deleteErr) => {
-        if (deleteErr) {
-          console.error("Error al eliminar el adeudo:", deleteErr);
-          return res.status(500).send("Error al eliminar el adeudo");
-        }
+      try {
+        await pool.promise().query(deleteQuery, [id_alumno, description]);
         console.log(
           `Adeudo eliminado para matrícula: ${id_alumno}, Descripción: ${description}`
         );
         res.status(200).send("Adeudo eliminado para pago con tarjeta exitoso");
-      });
+      } catch (deleteErr) {
+        console.error("Error al eliminar el adeudo:", deleteErr);
+        return res.status(500).send("Error al eliminar el adeudo");
+      }
     } else {
       res.status(200).send("Pago procesado sin eliminar adeudo");
     }
@@ -208,7 +197,5 @@ router.post("/webhook/openpay", async (req, res) => {
     res.status(400).send("Evento no manejado");
   }
 });
-
-module.exports = router;
 
 module.exports = router;

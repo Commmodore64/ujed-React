@@ -11,7 +11,7 @@ const CourseInfo = () => {
     const fetchCursos = async () => {
       try {
         const response = await fetch(
-          "http://ujed.solmoviles.com.mx/api/cursos",
+          "https://ujed.solmoviles.com.mx/api/cursos",
           {
             method: "GET",
             headers: {

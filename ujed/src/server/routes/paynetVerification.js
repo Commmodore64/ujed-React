@@ -3,9 +3,10 @@ const express = require("express");
 const router = express.Router();
 const https = require("https");
 const db = require("../db"); // Reemplaza con la ruta a tu módulo de conexión a la base de datos
+require("dotenv").config();
 
-const PRIVATE_API_KEY = process.env.PRIVATE_API_KEY; // Reemplaza con tu clave API privada
-const MERCHANT_ID = process.env.MERCHANT_ID; // Reemplaza con tu Merchant ID
+const PRIVATE_API_KEY = process.env.OPENPAY_PRIVADA; // Reemplaza con tu clave API privada
+const MERCHANT_ID = process.env.OPENPAY_ID; // Reemplaza con tu Merchant ID
 
 // Ruta para verificar una transacción
 router.get("/verify-payment", (req, res) => {
