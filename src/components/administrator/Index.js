@@ -380,11 +380,15 @@ const Index = () => {
                 Catálogo de conceptos
               </button>
             </Link>
-            <Link to="/manageusers" className="w-full sm:w-auto">
-              <button className="bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-3xl w-full sm:w-auto">
-                Administrar usuarios
-              </button>
-            </Link>
+            <a
+              href="https://manage.auth0.com/dashboard/us/dev-pbp6qijb86musv7h/users"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-3xl w-full sm:w-auto text-center inline-block"
+            >
+              Administrar usuarios
+            </a>
+
             <Link to="/diverse-payments" className="w-full sm:w-auto">
               <button className="bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-3xl w-full sm:w-auto">
                 Pagos Diversos

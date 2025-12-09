@@ -500,7 +500,7 @@ const Index = () => {
                 htmlFor="cursoSeleccionado"
                 className="block text-md font-medium text-gray-700"
               >
-                Curso Seleccionado
+                Curso o Diplomado Seleccionado
               </label>
               <select
                 name="cursoSeleccionado"
@@ -525,7 +525,7 @@ const Index = () => {
                 }}
                 className="mt-1 px-4 py-2 w-full bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-gray-400 focus:border-gray-400"
               >
-                <option value="">Selecciona un curso</option>
+                <option value="">Selecciona un Curso o Diplomado</option>
                 {cursos.map((curso) => (
                   <option
                     key={curso.id}

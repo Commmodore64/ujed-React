@@ -2,14 +2,20 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import LogoutButton from "../LogoutButton";
 import LogoFAEO from "../../img/faeo.png";
-import { IoIosHome, IoIosSettings, IoIosCash, IoIosPie, IoIosAlbums } from "react-icons/io";
-import { FaFileMedical, FaMoneyCheckAlt  } from "react-icons/fa";
+import {
+  IoIosHome,
+  IoIosSettings,
+  IoIosCash,
+  IoIosPie,
+  IoIosAlbums,
+} from "react-icons/io";
+import { FaFileMedical, FaMoneyCheckAlt } from "react-icons/fa";
 import { IoShare, IoMenu } from "react-icons/io5";
 import { useAuth0 } from "@auth0/auth0-react";
 
 const Index = () => {
   const location = useLocation();
-  const {isAuthenticated, getIdTokenClaims } = useAuth0();
+  const { isAuthenticated, getIdTokenClaims } = useAuth0();
   const [isOpen, setIsOpen] = useState(false);
   const [roles, setRoles] = useState([]);
 
@@ -90,7 +96,7 @@ const Index = () => {
                   onClick={closeSidebar}
                 >
                   <IoIosAlbums className="mr-4" size={25} color="#B11830" />
-                  Cursos
+                  Cursos y Diplomados Disponibles
                 </Link>
               </li>
               <li>
@@ -101,7 +107,7 @@ const Index = () => {
                   )}`}
                   onClick={closeSidebar}
                 >
-                  <FaFileMedical  className="mr-4" size={25} color="#B11830" />
+                  <FaFileMedical className="mr-4" size={25} color="#B11830" />
                   Consultas
                 </Link>
               </li>
@@ -126,7 +132,7 @@ const Index = () => {
                   onClick={closeSidebar}
                 >
                   <IoIosCash className="mr-4" size={24} color="#B11830" />
-                  Pagos
+                  Pagos cursos e inscripciones
                 </Link>
               </li>
               {isAuthenticated && (

@@ -31,7 +31,7 @@ const HomePage = () => {
     {
       title: "¿Puedo realizar pagos en efectivo?",
       content:
-        "Sí, nuestra plataforma cuenta con la opción de realizar pagos en efectivo. Se generará una ficha de pago para pagar en el banco o en algún centro comercial autorizado por Open Pay BBVA tales como: Walmart, Walmart Express, Bodega Aurrerá, Sam's Club, Waldo's, Farmaias del Ahorro, 7 Eleven, Farmacial Guadalajara, K, Circle K, Extra, Kiosko, SYS Tienda, Entre Otras.",
+        "Sí, nuestra plataforma cuenta con la opción de realizar pagos en efectivo. Se generará una ficha de pago para pagar en el banco o en algún centro comercial autorizado por Open Pay BBVA, tales como: Walmart, Walmart Express, Bodega Aurrerá, Sam's Club, Waldo's, Farmacias del Ahorro, 7-Eleven, Farmacias Guadalajara, K, Circle K, Extra, Kiosko, SYS Tienda, entre otras.",
     },
     {
       title: "¿Cómo presento mi ficha de pago o mi confirmación de pago?",
@@ -88,8 +88,8 @@ const HomePage = () => {
               </span>
             </h1>
             <p className="relative text-muted-foreground text-gray-700 md:text-xl">
-              Una nueva plataforma para realizar tus pagos de inscripción y
-              cursos de manera rápida y segura.
+              Una nueva plataforma para realizar tus pagos de inscripción,
+              cursos y diversos de manera rápida y segura.
             </p>
             <p className="relative text-muted-foreground text-gray-500 md:text-lg">
               Pagar ahora
@@ -99,19 +99,19 @@ const HomePage = () => {
                 to="/dashboard"
                 className="bg-[#0071e3] text-white text-lg py-2 px-5 tracking-wide rounded-3xl hover:bg-[#0066e3]"
               >
-                Realizar Pago
+                Pagar
               </Link>
             </div>
             <hr className="relative mt-10 border-gray-300 w-full" />
             <p className="relative text-muted-foreground text-gray-500 md:text-lg">
-              Nuestros cursos disponibles
+              Nuestros cursos, Diplomados y Pagos Diversos disponibles
             </p>
             <div className="relative flex flex-col gap-2 min-[400px]:flex-row justify-center lg:justify-start">
               <Link
                 to="/courseinfo"
                 className="bg-[#0071e3] text-white text-lg py-2 px-8 tracking-wide rounded-3xl hover:bg-[#0066e3]"
               >
-                Cursos
+                Cursos, Diplomados y Pagos Diversos
               </Link>
             </div>
           </div>
@@ -195,7 +195,7 @@ const HomePage = () => {
               <MdPayments size={60} />
               <h3 className="text-xl font-bold text-gray-900">Pago rápido</h3>
               <p className="mt-2 text-gray-600">
-                Realiza tus pagos de manera rápida y segura.
+                Realiza tus pagos de manera rápida y eficiente.
               </p>
             </div>
             <div className="flex flex-col items-center text-center">

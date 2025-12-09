@@ -35,11 +35,39 @@ const Index = () => {
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [pagoAEliminar, setPagoAEliminar] = useState(null);
+  const [modalEliminarPagoOpen, setModalEliminarPagoOpen] = useState(false);
 
   const fetchCoursesData = async () => {
     const response = await fetch("https://ujed.solmoviles.com.mx/api/cursos");
     const data = await response.json();
     setCoursesData(data);
+  };
+
+  const handleEliminarPago = async () => {
+    if (!pagoAEliminar) return;
+
+    try {
+      const response = await fetch(
+        `https://ujed.solmoviles.com.mx/api/eliminarpago/${pagoAEliminar}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            comentario: "Pago eliminado desde el panel administrativo", // Comentario obligatorio
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Error al eliminar el pago");
+
+      toast.success("✅ Pago marcado como eliminado (soft delete)");
+      setModalEliminarPagoOpen(false);
+      fetchInscriptionsData(); // Recarga los datos
+    } catch (error) {
+      toast.error(`❌ ${error.message}`);
+      console.error("Error en handleEliminarPago:", error);
+    }
   };
 
   const fetchInscriptionsData = async () => {
@@ -501,27 +529,31 @@ const Index = () => {
       const adeudosSheetData = [
         [
           "ID",
-          "Curso/Pago",
+          "Curso",
           "Nombre",
-          "Matricula",
           "Descripción",
-          "Comentario",
           "Monto",
           "Fecha Adeudo",
-          "Referencia",
           "Pagado",
+          "Programa",
+          "Centro de Costo",
+          "Matricula",
+          "Referencia",
+          "Comentario",
         ],
         ...adeudosData.map((item) => [
           item.ID_Adeudo,
-          item.Matricula,
+          item.Matricula, // Asumo que "Curso" se refiere a "Matricula" (ajusta si no es correcto)
           item.Nombre,
-          item.id_alumno,
           item.Descripcion,
-          item.descripcionIngreso,
           `$${item.Monto}`,
           item.Fecha_Adeudo,
-          item.referencia,
           item.Pagado ? "Sí" : "No",
+          item.programa || "N/A", // Si no existe, muestra "N/A"
+          item.centroCosto || "N/A",
+          item.id_alumno,
+          item.referencia,
+          item.descripcionIngreso || "Sin comentario", // Campo "Comentario"
         ]),
       ];
 
@@ -1007,14 +1039,69 @@ const Index = () => {
                             </td>
                             <td className="h-12 px-4 align-middle">
                               {item.Pagado === 0 && (
-                                <button
-                                  className="bg-blue-500 hover:bg-blue-600 text-white py-1 px-2 rounded-full"
-                                  onClick={() =>
-                                    handleConciliar(item.referencia)
-                                  }
+                                <div className="flex justify-between items-center w-full">
+                                  <button
+                                    className="bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded-full transition-colors duration-200"
+                                    onClick={() =>
+                                      handleConciliar(item.referencia)
+                                    }
+                                  >
+                                    Conciliar
+                                  </button>
+                                </div>
+                              )}
+                              <button
+                                className="text-gray-500 hover:text-red-500 p-1 rounded-full transition-colors duration-200"
+                                onClick={() => {
+                                  setPagoAEliminar(item.referencia); // Prepara el pago a eliminar
+                                  setModalEliminarPagoOpen(true); // Abre el modal específico
+                                }}
+                                aria-label="Eliminar"
+                                title="Eliminar"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-5 w-5"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
                                 >
-                                  Conciliar
-                                </button>
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
+                                </svg>
+                              </button>
+                              {modalEliminarPagoOpen && (
+                                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                                  <div className="bg-white p-6 rounded-lg max-w-md w-full">
+                                    <h3 className="text-lg font-bold text-red-600 mb-4">
+                                      Eliminar Pago
+                                    </h3>
+                                    <p>
+                                      ¿Estás seguro de eliminar este pago? Esta
+                                      acción no se puede deshacer.
+                                    </p>
+                                    <div className="flex justify-end space-x-3 mt-4">
+                                      <button
+                                        onClick={() =>
+                                          setModalEliminarPagoOpen(false)
+                                        }
+                                        className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                                      >
+                                        Cancelar
+                                      </button>
+                                      <button
+                                        onClick={handleEliminarPago} // Usa el nuevo manejador
+                                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                                      >
+                                        Confirmar Eliminación
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
                               )}
                             </td>
                           </>
